@@ -2,9 +2,10 @@ name: Build UltimateApp v5
 
 on:
   push:
-    branches: [ main, build-foundation ]
+    branches: [ main, build-foundation, 'copilot/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:   # Ręczne uruchomienie: Actions → Build UltimateApp v5 → Run workflow
 
 permissions:
   contents: read
@@ -55,6 +56,7 @@ jobs:
           name: UltimateApp-win-x64
           path: artifacts/UltimateApp-win-x64/
           if-no-files-found: error
+          retention-days: 30
 
       # -------------------------------------------------------
       # Installer (Inno Setup)
@@ -83,11 +85,21 @@ jobs:
           name: UltimateApp-v5-Setup-x64
           path: artifacts/installer/UltimateApp-v5-Setup-x64.exe
           if-no-files-found: error
+          retention-days: 30
 
-      # TODO: Create GitHub Release on tag push
-      # - name: Create Release
-      #   if: startsWith(github.ref, 'refs/tags/')
-      #   uses: softprops/action-gh-release@v2
+      - name: Build summary
+        shell: pwsh
+        run: |
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          Write-Output "## Instalator gotowy / Installer ready" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "Pobierz plik **UltimateApp-v5-Setup-x64.exe** z sekcji **Artifacts** poniżej lub kliknij:" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "🔗 [$runUrl]($runUrl)" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| Artefakt | Opis |" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "|---|---|" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| \`UltimateApp-v5-Setup-x64\` | **Plik instalacyjny** (self-contained, nie wymaga .NET) |" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| \`UltimateApp-win-x64\` | Pliki aplikacji (wymaga .NET 8 na docelowej maszynie) |" >> $env:GITHUB_STEP_SUMMARY
 
   build-tests-linux:
     runs-on: ubuntu-latest

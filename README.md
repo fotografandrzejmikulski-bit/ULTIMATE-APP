@@ -17,8 +17,15 @@ Plik instalacyjny **`UltimateApp-v5-Setup-x64.exe`** jest budowany automatycznie
 
 > Bezpośredni link do zakładki Actions:  
 > `https://github.com/fotografandrzejmikulski-bit/ULTIMATE-APP/actions`
->  
-> *(zastąp właściwą nazwą repozytorium jeśli je forkujesz)*
+
+#### ▶️ Ręczne uruchomienie buildu (na żądanie)
+
+Jeśli chcesz zbudować instalator teraz bez czekania na push:
+
+1. Wejdź na: `https://github.com/fotografandrzejmikulski-bit/ULTIMATE-APP/actions/workflows/build.yml`
+2. Kliknij przycisk **"Run workflow"** (prawa strona).
+3. Wybierz gałąź (`main` lub `copilot/…`) → kliknij **"Run workflow"**.
+4. Po ~5–10 minutach w sekcji **Artifacts** pojawi się `UltimateApp-v5-Setup-x64.exe`.
 
 ---
 
