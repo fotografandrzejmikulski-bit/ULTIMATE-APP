@@ -1,0 +1,154 @@
+name: Build UltimateApp v5
+
+on:
+  push:
+    branches: [ main, build-foundation, 'copilot/**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:   # Ręczne uruchomienie: Actions → Build UltimateApp v5 → Run workflow
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: UltimateApp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore UltimateApp.sln
+
+      - name: Build (Application + Infrastructure + Tests)
+        run: |
+          dotnet build src/UltimateApp.Application/UltimateApp.Application.csproj --configuration Release --no-restore
+          dotnet build src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj --configuration Release --no-restore
+          dotnet build tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-restore
+
+      - name: Build Presentation (WinUI 3, x64 only)
+        run: |
+          dotnet build src/UltimateApp.Presentation/UltimateApp.Presentation.csproj --configuration Release --runtime win-x64 --no-restore
+        continue-on-error: false
+
+      - name: Run unit tests
+        run: dotnet test tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Publish Presentation (x64, framework-dependent)
+        run: |
+          dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            -p:Platform=x64 `
+            --self-contained false `
+            --output ../artifacts/UltimateApp-win-x64
+
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltimateApp-win-x64
+          path: artifacts/UltimateApp-win-x64/
+          if-no-files-found: error
+          retention-days: 30
+
+      # -------------------------------------------------------
+      # Installer (Inno Setup)
+      # -------------------------------------------------------
+      - name: Publish self-contained x64 (for installer)
+        run: |
+          dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            -p:Platform=x64 `
+            --self-contained true `
+            -p:WindowsAppSDKSelfContained=true `
+            --output ../artifacts/UltimateApp-win-x64-selfcontained
+
+      - name: Ensure Inno Setup 6 is installed
+        run: |
+          function Find-Iscc {
+            @(
+              "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+              "C:\Program Files\Inno Setup 6\ISCC.exe"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          $iscc = Find-Iscc
+          if (-not $iscc) {
+            Write-Host "Inno Setup not found – installing Inno Setup 6 via Chocolatey..."
+            # No version pin: Inno Setup is at 6.x series; pre-installed on windows-latest.
+            # If ever Inno Setup 7 ships, pin here with --version=6.x.x.
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "Inno Setup installation failed." }
+            $iscc = Find-Iscc
+            if (-not $iscc) { throw "ISCC.exe not found after installation." }
+          }
+          Write-Host "Inno Setup found: $iscc"
+          echo "ISCC_PATH=$iscc" >> $env:GITHUB_ENV
+
+      - name: Build installer with Inno Setup
+        run: |
+          New-Item -ItemType Directory -Force -Path "..\artifacts\installer" | Out-Null
+          $iscc      = $env:ISCC_PATH
+          $sourceDir = (Resolve-Path "..\artifacts\UltimateApp-win-x64-selfcontained").Path
+          $outputDir = (Resolve-Path "..\artifacts\installer").Path
+          & $iscc "/DSourceDir=$sourceDir" "/DOutputDir=$outputDir" "installer\UltimateApp.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup build failed (exit $LASTEXITCODE)" }
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltimateApp-v5-Setup-x64
+          path: artifacts/installer/UltimateApp-v5-Setup-x64.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build summary
+        shell: pwsh
+        run: |
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          Write-Output "## Instalator gotowy / Installer ready" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "Pobierz plik **UltimateApp-v5-Setup-x64.exe** z sekcji **Artifacts** poniżej lub kliknij:" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "🔗 [$runUrl]($runUrl)" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| Artefakt | Opis |" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "|---|---|" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| \`UltimateApp-v5-Setup-x64\` | **Plik instalacyjny** (self-contained, nie wymaga .NET) |" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "| \`UltimateApp-win-x64\` | Pliki aplikacji (wymaga .NET 8 na docelowej maszynie) |" >> $env:GITHUB_STEP_SUMMARY
+
+  build-tests-linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: UltimateApp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore (Application + Infrastructure + Tests only)
+        run: |
+          dotnet restore src/UltimateApp.Application/UltimateApp.Application.csproj
+          dotnet restore src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj
+          dotnet restore tests/UltimateApp.Tests/UltimateApp.Tests.csproj
+
+      - name: Build cross-platform projects
+        run: |
+          dotnet build src/UltimateApp.Application/UltimateApp.Application.csproj --configuration Release --no-restore
+          dotnet build src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj --configuration Release --no-restore
+          dotnet build tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-build --verbosity normal
