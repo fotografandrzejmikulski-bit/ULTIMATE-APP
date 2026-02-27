@@ -41,7 +41,7 @@ jobs:
       - name: Run unit tests
         run: dotnet test tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-build --verbosity normal
 
-      - name: Publish Presentation (x64)
+      - name: Publish Presentation (x64, framework-dependent)
         run: |
           dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
             --configuration Release `
@@ -49,11 +49,39 @@ jobs:
             --self-contained false `
             --output ../artifacts/UltimateApp-win-x64
 
-      - name: Upload artifacts
+      - name: Upload portable artifact
         uses: actions/upload-artifact@v4
         with:
           name: UltimateApp-win-x64
           path: artifacts/UltimateApp-win-x64/
+          if-no-files-found: error
+
+      # -------------------------------------------------------
+      # Installer (Inno Setup)
+      # -------------------------------------------------------
+      - name: Publish self-contained x64 (for installer)
+        run: |
+          dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:WindowsAppSDKSelfContained=true `
+            --output ../artifacts/UltimateApp-win-x64-selfcontained
+
+      - name: Build installer with Inno Setup
+        run: |
+          New-Item -ItemType Directory -Force -Path "..\artifacts\installer" | Out-Null
+          $iscc      = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          $sourceDir = (Resolve-Path "..\artifacts\UltimateApp-win-x64-selfcontained").Path
+          $outputDir = (Resolve-Path "..\artifacts\installer").Path
+          & $iscc "/DSourceDir=$sourceDir" "/DOutputDir=$outputDir" "installer\UltimateApp.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup build failed (exit $LASTEXITCODE)" }
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltimateApp-v5-Setup-x64
+          path: artifacts/installer/UltimateApp-v5-Setup-x64.exe
           if-no-files-found: error
 
       # TODO: Create GitHub Release on tag push
