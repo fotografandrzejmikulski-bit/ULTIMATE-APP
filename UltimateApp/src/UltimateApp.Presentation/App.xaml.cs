@@ -11,7 +11,7 @@ using UltimateApp.Presentation.ViewModels;
 
 namespace UltimateApp.Presentation;
 
-public partial class App : Application
+public partial class App : Microsoft.UI.Xaml.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
