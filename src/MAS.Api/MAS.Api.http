@@ -1,0 +1,6 @@
+@MAS.Api_HostAddress = http://localhost:5049
+
+GET {{MAS.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Strona dashboardu agentów MAS dla .NET MAUI.
+    Działa identycznie na Windows, Android i iOS.
+    Użyj {Binding ...} do podpięcia DashboardViewModel.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MAS.App.ViewModels"
+             x:Class="MAS.App.Views.DashboardPage"
+             Title="ULTIMATE-APP — System Wieloagentowy">
+
+    <Shell.TitleView>
+        <Label Text="🤖 System Wieloagentowy MAS"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="White"
+               VerticalOptions="Center" />
+    </Shell.TitleView>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="12">
+
+        <!-- ─── Pasek statusu połączenia ──────────────────────────── -->
+        <Frame Grid.Row="0"
+               BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"
+               CornerRadius="8" Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="{Binding ConnectionStatus}" TextColor="White" FontAttributes="Bold" />
+                <Button Grid.Column="1"
+                        Text="Połącz"
+                        Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding IsConnected, Converter={StaticResource InvertBoolConverter}}"
+                        BackgroundColor="White"
+                        TextColor="#1976D2" />
+            </Grid>
+        </Frame>
+
+        <!-- ─── Główna treść (agenty + wyniki) ───────────────────── -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12">
+
+            <!-- Lista agentów -->
+            <Frame Grid.Column="0" CornerRadius="8" Padding="0">
+                <Grid RowDefinitions="Auto,*">
+                    <Label Grid.Row="0"
+                           Text="Agenty systemu"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           Padding="12,8" />
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding Agents}"
+                                    EmptyView="Brak agentów">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*" Padding="12,8">
+                                    <BoxView Grid.Column="0"
+                                             Color="{Binding StatusColor}"
+                                             WidthRequest="10" HeightRequest="10"
+                                             CornerRadius="5"
+                                             VerticalOptions="Center" />
+                                    <StackLayout Grid.Column="1" Margin="8,0,0,0">
+                                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="13" />
+                                        <Label Text="{Binding Status}" FontSize="11" TextColor="Gray" />
+                                    </StackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Frame>
+
+            <!-- Wyniki zadań -->
+            <Frame Grid.Column="1" CornerRadius="8" Padding="0">
+                <Grid RowDefinitions="Auto,*">
+                    <Label Grid.Row="0"
+                           Text="Wyniki zadań"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           Padding="12,8" />
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding TaskResults}"
+                                    EmptyView="Brak wyników">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="12,8">
+                                    <StackLayout>
+                                        <Label Text="{Binding StatusIcon, StringFormat='{0} {1}', Source={RelativeSource Self}}"
+                                               FontAttributes="Bold" FontSize="13" />
+                                        <Label Text="{Binding Result}"
+                                               FontSize="11"
+                                               TextColor="Gray"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="2" />
+                                        <Label Text="{Binding DurationMs, StringFormat='{0:F0} ms'}"
+                                               FontSize="10" TextColor="LightGray" />
+                                    </StackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Frame>
+        </Grid>
+
+        <!-- ─── Panel wysyłania zadania ───────────────────────────── -->
+        <Frame Grid.Row="2" CornerRadius="8" Padding="16">
+            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                <Entry Grid.Row="0"
+                       Placeholder="Tytuł zadania…"
+                       Text="{Binding TaskTitle}" />
+                <Editor Grid.Row="1"
+                        Placeholder="Opis zadania / payload JSON…"
+                        Text="{Binding TaskPayload}"
+                        HeightRequest="80" />
+                <Button Grid.Row="2"
+                        Text="▶  Wyślij do agentów"
+                        Command="{Binding SendTaskCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"
+                        BackgroundColor="#1976D2"
+                        TextColor="White"
+                        CornerRadius="8" />
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentPage>
