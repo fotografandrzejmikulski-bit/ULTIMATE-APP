@@ -47,6 +47,7 @@ jobs:
           dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
             --configuration Release `
             --runtime win-x64 `
+            -p:Platform=x64 `
             --self-contained false `
             --output ../artifacts/UltimateApp-win-x64
 
@@ -66,6 +67,7 @@ jobs:
           dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
             --configuration Release `
             --runtime win-x64 `
+            -p:Platform=x64 `
             --self-contained true `
             -p:WindowsAppSDKSelfContained=true `
             --output ../artifacts/UltimateApp-win-x64-selfcontained

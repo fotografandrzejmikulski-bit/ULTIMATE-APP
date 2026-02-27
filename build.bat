@@ -56,7 +56,7 @@ set ISS_FILE=%SOLUTION_DIR%\installer\UltimateApp.iss
 echo     Publikowanie self-contained x64...
 dotnet publish "%SOLUTION_DIR%\src\UltimateApp.Presentation\UltimateApp.Presentation.csproj" ^
     -c %CONFIG% -r win-x64 --self-contained true ^
-    -p:WindowsAppSDKSelfContained=true -o "%SELFCONTAINED_DIR%"
+    -p:Platform=x64 -p:WindowsAppSDKSelfContained=true -o "%SELFCONTAINED_DIR%"
 if %ERRORLEVEL% neq 0 (echo BLAD: Publish self-contained nieudany. & exit /b 1)
 
 if not exist "%INSTALLER_DIR%" mkdir "%INSTALLER_DIR%"

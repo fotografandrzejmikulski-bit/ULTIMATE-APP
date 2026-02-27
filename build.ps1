@@ -67,7 +67,7 @@ if ($Publish) {
     Write-Host "[+] Publikowanie aplikacji..." -ForegroundColor Yellow
     $PublishOutputDir = Join-Path $PSScriptRoot "artifacts\UltimateApp-win-x64"
     dotnet publish "$SolutionDir\src\UltimateApp.Presentation\UltimateApp.Presentation.csproj" `
-        -c $Configuration -r win-x64 --self-contained false -o $PublishOutputDir
+        -c $Configuration -r win-x64 --self-contained false -p:Platform=x64 -o $PublishOutputDir
     if ($LASTEXITCODE -ne 0) { throw "Publish nieudany." }
     Write-Host "Opublikowano do: $PublishOutputDir" -ForegroundColor Green
 }
@@ -95,7 +95,7 @@ if ($Installer) {
     Write-Host "    Publikowanie self-contained x64..." -ForegroundColor Gray
     dotnet publish "$SolutionDir\src\UltimateApp.Presentation\UltimateApp.Presentation.csproj" `
         -c $Configuration -r win-x64 --self-contained true `
-        -p:WindowsAppSDKSelfContained=true -o $SelfContainedDir
+        -p:Platform=x64 -p:WindowsAppSDKSelfContained=true -o $SelfContainedDir
     if ($LASTEXITCODE -ne 0) { throw "Publish self-contained nieudany." }
 
     New-Item -ItemType Directory -Force -Path $InstallerDir | Out-Null
