@@ -70,10 +70,31 @@ jobs:
             -p:WindowsAppSDKSelfContained=true `
             --output ../artifacts/UltimateApp-win-x64-selfcontained
 
+      - name: Ensure Inno Setup 6 is installed
+        run: |
+          function Find-Iscc {
+            @(
+              "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+              "C:\Program Files\Inno Setup 6\ISCC.exe"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          $iscc = Find-Iscc
+          if (-not $iscc) {
+            Write-Host "Inno Setup not found – installing Inno Setup 6 via Chocolatey..."
+            # No version pin: Inno Setup is at 6.x series; pre-installed on windows-latest.
+            # If ever Inno Setup 7 ships, pin here with --version=6.x.x.
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "Inno Setup installation failed." }
+            $iscc = Find-Iscc
+            if (-not $iscc) { throw "ISCC.exe not found after installation." }
+          }
+          Write-Host "Inno Setup found: $iscc"
+          echo "ISCC_PATH=$iscc" >> $env:GITHUB_ENV
+
       - name: Build installer with Inno Setup
         run: |
           New-Item -ItemType Directory -Force -Path "..\artifacts\installer" | Out-Null
-          $iscc      = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          $iscc      = $env:ISCC_PATH
           $sourceDir = (Resolve-Path "..\artifacts\UltimateApp-win-x64-selfcontained").Path
           $outputDir = (Resolve-Path "..\artifacts\installer").Path
           & $iscc "/DSourceDir=$sourceDir" "/DOutputDir=$outputDir" "installer\UltimateApp.iss"
