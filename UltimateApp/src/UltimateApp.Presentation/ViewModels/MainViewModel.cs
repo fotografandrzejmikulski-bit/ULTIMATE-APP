@@ -20,10 +20,10 @@ public partial class MainViewModel : ObservableObject
             new ModuleItemViewModel("asystent",      "Asystent AI",             "Inteligentny asystent oparty o GGUF i Gemini",    "\uE8D4"),
             new ModuleItemViewModel("edytor",        "Edytor dokumentów",       "Tworzenie i edycja dokumentów z pomocą AI",       "\uE8A5"),
             new ModuleItemViewModel("analiza",       "Analiza danych",          "Analiza i wizualizacja zbiorów danych",           "\uE9D2"),
-            new ModuleItemViewModel("zdjecia",       "Obróbka zdjec",           "Edycja i analiza fotografii",                     "\uEB9F"),
-            new ModuleItemViewModel("kod",           "Generator kodu",          "Generowanie i refaktoring kodu zródlowego",       "\uE943"),
+            new ModuleItemViewModel("zdjecia",       "Obróbka zdjęć",           "Edycja i analiza fotografii",                     "\uEB9F"),
+            new ModuleItemViewModel("kod",           "Generator kodu",          "Generowanie i refaktoring kodu źródłowego",       "\uE943"),
             new ModuleItemViewModel("tlumacz",       "Tłumacz",                 "Tłumaczenie tekstu i dokumentów",                 "\uF2B7"),
-            new ModuleItemViewModel("modele",        "Menedzer modeli",         "Pobieranie i zarządzanie modelami GGUF",          "\uE896"),
+            new ModuleItemViewModel("modele",        "Menedżer modeli",         "Pobieranie i zarządzanie modelami GGUF",          "\uE896"),
             new ModuleItemViewModel("ustawienia",    "Ustawienia",              "Konfiguracja aplikacji i dostawców AI",           "\uE713"),
         };
 
