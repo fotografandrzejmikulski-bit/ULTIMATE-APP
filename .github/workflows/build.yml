@@ -1,0 +1,88 @@
+name: Build UltimateApp v5
+
+on:
+  push:
+    branches: [ main, build-foundation ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: UltimateApp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore UltimateApp.sln
+
+      - name: Build (Application + Infrastructure + Tests)
+        run: |
+          dotnet build src/UltimateApp.Application/UltimateApp.Application.csproj --configuration Release --no-restore
+          dotnet build src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj --configuration Release --no-restore
+          dotnet build tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-restore
+
+      - name: Build Presentation (WinUI 3, x64 only)
+        run: |
+          dotnet build src/UltimateApp.Presentation/UltimateApp.Presentation.csproj --configuration Release --runtime win-x64 --no-restore
+        continue-on-error: false
+
+      - name: Run unit tests
+        run: dotnet test tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Publish Presentation (x64)
+        run: |
+          dotnet publish src/UltimateApp.Presentation/UltimateApp.Presentation.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained false `
+            --output ../artifacts/UltimateApp-win-x64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltimateApp-win-x64
+          path: artifacts/UltimateApp-win-x64/
+          if-no-files-found: error
+
+      # TODO: Create GitHub Release on tag push
+      # - name: Create Release
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   uses: softprops/action-gh-release@v2
+
+  build-tests-linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: UltimateApp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore (Application + Infrastructure + Tests only)
+        run: |
+          dotnet restore src/UltimateApp.Application/UltimateApp.Application.csproj
+          dotnet restore src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj
+          dotnet restore tests/UltimateApp.Tests/UltimateApp.Tests.csproj
+
+      - name: Build cross-platform projects
+        run: |
+          dotnet build src/UltimateApp.Application/UltimateApp.Application.csproj --configuration Release --no-restore
+          dotnet build src/UltimateApp.Infrastructure/UltimateApp.Infrastructure.csproj --configuration Release --no-restore
+          dotnet build tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test tests/UltimateApp.Tests/UltimateApp.Tests.csproj --configuration Release --no-build --verbosity normal

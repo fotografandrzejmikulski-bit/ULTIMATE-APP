@@ -1,0 +1,33 @@
+# Build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+_ReSharper.Caches/
+*.ncrunchsolution
+*.ncrunchproject
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.lock.json
+!packages.lock.json
+
+# Publish output
+publish/
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.swp
+*~
+
+# Models cache (large GGUF files)
+UltimateApp/cache/
+*.gguf

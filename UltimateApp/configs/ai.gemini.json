@@ -1,0 +1,11 @@
+{
+  "gemini": {
+    "model": "gemini-1.5-flash",
+    "apiKeySource": "environment",
+    "apiKeyEnvironmentVariable": "GEMINI_API_KEY",
+    "comment_keySource": "Możliwe wartości: 'environment', 'windows-credential-manager'",
+    "maxOutputTokens": 2048,
+    "temperature": 0.7,
+    "requestTimeoutSeconds": 60
+  }
+}
