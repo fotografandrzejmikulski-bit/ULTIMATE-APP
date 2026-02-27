@@ -26,7 +26,8 @@ public static class MasInfrastructureServiceCollectionExtensions
 
     /// <summary>
     /// Rejestruje konkretnego agenta w kontenerze DI oraz rejestrze agentów.
-    /// Agenty muszą być zarejestrowane PRZED wywołaniem AddMasInfrastructure().
+    /// Agenty muszą być zarejestrowane po wywołaniu AddMasInfrastructure(),
+    /// ponieważ wymagają IAgentRegistry zarejestrowanego przez tę metodę.
     /// </summary>
     public static IServiceCollection AddAgent<TAgent>(this IServiceCollection services)
         where TAgent : class, IAgent

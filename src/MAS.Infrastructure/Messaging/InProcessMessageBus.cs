@@ -16,7 +16,11 @@ public sealed class InProcessMessageBus : IMessageBus, IDisposable
 
     // Subskrypcje: typ wiadomości → lista handlerów (agentId lub null dla broadcast)
     private readonly ConcurrentDictionary<Type, List<HandlerEntry>> _handlers = new();
-    private readonly SemaphoreSlim _lock = new(1, 1);
+
+    // Używamy lock dla operacji synchronicznych (Subscribe/Unsubscribe)
+    // i SemaphoreSlim(1,1) tylko dla PublishAsync, gdzie potrzebujemy await.
+    private readonly object _syncLock = new();
+    private readonly SemaphoreSlim _publishLock = new(1, 1);
 
     public InProcessMessageBus(ILogger<InProcessMessageBus> logger)
     {
@@ -36,14 +40,14 @@ public sealed class InProcessMessageBus : IMessageBus, IDisposable
             return;
 
         List<HandlerEntry> snapshot;
-        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _publishLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             snapshot = [.. handlers];
         }
         finally
         {
-            _lock.Release();
+            _publishLock.Release();
         }
 
         var tasks = snapshot
@@ -74,21 +78,17 @@ public sealed class InProcessMessageBus : IMessageBus, IDisposable
 
         var list = _handlers.GetOrAdd(typeof(TMessage), _ => []);
 
-        _lock.Wait();
-        try { list.Add(entry); }
-        finally { _lock.Release(); }
+        lock (_syncLock) { list.Add(entry); }
 
         return new Subscription(() =>
         {
-            _lock.Wait();
-            try { list.Remove(entry); }
-            finally { _lock.Release(); }
+            lock (_syncLock) { list.Remove(entry); }
         });
     }
 
     public void Dispose()
     {
-        _lock.Dispose();
+        _publishLock.Dispose();
     }
 
     // ---------- private helpers ----------

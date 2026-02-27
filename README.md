@@ -38,9 +38,9 @@ Szczegółowa dokumentacja architektury: [`docs/ARCHITECTURE.md`](docs/ARCHITECT
 cd src/MAS.Api
 dotnet run
 ```
-- REST API: `https://localhost:5001/api/`
-- SignalR Hub: `wss://localhost:5001/hubs/agents`
-- OpenAPI UI: `https://localhost:5001/openapi/v1.json`
+- REST API: `http://localhost:5049/api/`
+- SignalR Hub: `ws://localhost:5049/hubs/agents`
+- OpenAPI UI: `http://localhost:5049/openapi/v1.json`
 
 ### Testy
 ```bash

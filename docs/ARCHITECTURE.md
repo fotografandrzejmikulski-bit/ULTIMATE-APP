@@ -195,9 +195,9 @@ return response.Value.Choices[0].Message.Content;
 ```bash
 cd src/MAS.Api
 dotnet run
-# API dostępne pod: https://localhost:5001
-# SignalR Hub: wss://localhost:5001/hubs/agents
-# OpenAPI: https://localhost:5001/openapi/v1.json
+# API dostępne pod: http://localhost:5049 (HTTP) lub https://localhost:7031 (HTTPS)
+# SignalR Hub: ws://localhost:5049/hubs/agents
+# OpenAPI: http://localhost:5049/openapi/v1.json
 ```
 
 ### Aplikacja MAUI
