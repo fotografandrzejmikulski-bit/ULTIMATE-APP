@@ -32,9 +32,9 @@ public sealed class ModelManager : IModelManager
         Directory.CreateDirectory(_cacheDirectory);
     }
 
-    public async Task<(ModelDownloadStatus Llm, ModelDownloadStatus Specialist)> GetStatusAsync(CancellationToken cancellationToken = default)
+    public Task<(ModelDownloadStatus Llm, ModelDownloadStatus Specialist)> GetStatusAsync(CancellationToken cancellationToken = default)
     {
-        return (GetModelStatus(_llmModel), GetModelStatus(_specialistModel));
+        return Task.FromResult((GetModelStatus(_llmModel), GetModelStatus(_specialistModel)));
     }
 
     public async Task DownloadModelsAsync(
