@@ -11,18 +11,24 @@
 .PARAMETER Installer
     Jeśli podany, tworzy plik instalacyjny Setup.exe przez Inno Setup.
     Wymaga zainstalowanego Inno Setup 6: https://jrsoftware.org/isdl.php
+.PARAMETER OutputDir
+    Ścieżka do folderu, w którym pojawi się plik Setup.exe (tylko z -Installer).
+    Domyślnie: artifacts\installer\ w katalogu repozytorium.
+    Przykład: -OutputDir "C:\Moje\Pliki" → C:\Moje\Pliki\UltimateApp-v5-Setup-x64.exe
 .EXAMPLE
     .\build.ps1
     .\build.ps1 -Configuration Debug
     .\build.ps1 -Publish
     .\build.ps1 -Installer
+    .\build.ps1 -Installer -OutputDir "C:\Users\Andrzej\Desktop"
     .\build.ps1 -Installer -Configuration Release
 #>
 param(
     [ValidateSet("Debug","Release")]
     [string]$Configuration = "Release",
     [switch]$Publish,
-    [switch]$Installer
+    [switch]$Installer,
+    [string]$OutputDir = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -59,11 +65,11 @@ if ($LASTEXITCODE -ne 0) { throw "Testy nieudane." }
 if ($Publish) {
     Write-Host "" 
     Write-Host "[+] Publikowanie aplikacji..." -ForegroundColor Yellow
-    $OutputDir = Join-Path $PSScriptRoot "artifacts\UltimateApp-win-x64"
+    $PublishOutputDir = Join-Path $PSScriptRoot "artifacts\UltimateApp-win-x64"
     dotnet publish "$SolutionDir\src\UltimateApp.Presentation\UltimateApp.Presentation.csproj" `
-        -c $Configuration -r win-x64 --self-contained false -o $OutputDir
+        -c $Configuration -r win-x64 --self-contained false -o $PublishOutputDir
     if ($LASTEXITCODE -ne 0) { throw "Publish nieudany." }
-    Write-Host "Opublikowano do: $OutputDir" -ForegroundColor Green
+    Write-Host "Opublikowano do: $PublishOutputDir" -ForegroundColor Green
 }
 
 Write-Host ""
@@ -77,8 +83,13 @@ if ($Installer) {
     Write-Host "[+] Budowanie pliku instalacyjnego (Inno Setup)..." -ForegroundColor Yellow
 
     $SelfContainedDir = Join-Path $PSScriptRoot "artifacts\UltimateApp-win-x64-selfcontained"
-    $InstallerDir     = Join-Path $PSScriptRoot "artifacts\installer"
-    $IssFile          = Join-Path $SolutionDir "installer\UltimateApp.iss"
+    # Użyj -OutputDir jeśli podany, w przeciwnym razie domyślny artifacts\installer
+    if ($OutputDir -ne "") {
+        $InstallerDir = $OutputDir
+    } else {
+        $InstallerDir = Join-Path $PSScriptRoot "artifacts\installer"
+    }
+    $IssFile = Join-Path $SolutionDir "installer\UltimateApp.iss"
 
     # Publikowanie self-contained (włącznie z .NET runtime i Windows App SDK)
     Write-Host "    Publikowanie self-contained x64..." -ForegroundColor Gray

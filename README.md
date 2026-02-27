@@ -34,8 +34,12 @@ Wymagania wstępne:
 # Zbuduj i uruchom testy
 .\build.ps1
 
-# Zbuduj + utwórz plik instalacyjny Setup.exe
+# Zbuduj + utwórz plik instalacyjny Setup.exe (domyślna ścieżka wyjściowa)
 .\build.ps1 -Installer
+
+# Zbuduj + zapisz instalator ZAWSZE W WYBRANYM MIEJSCU (np. Pulpit)
+.\build.ps1 -Installer -OutputDir "$env:USERPROFILE\Desktop"
+.\build.ps1 -Installer -OutputDir "D:\Moje\Instalatory"
 ```
 
 #### Wiersz poleceń (CMD)
@@ -43,13 +47,18 @@ Wymagania wstępne:
 ```cmd
 build.bat
 build.bat --installer
+build.bat --installer --output-dir "%USERPROFILE%\Desktop"
+build.bat --installer --output-dir "D:\Moje\Instalatory"
 ```
 
-Po zakończeniu plik instalacyjny pojawi się w:
+Po zakończeniu plik instalacyjny pojawi się w podanej ścieżce lub domyślnie w:
 
 ```
 artifacts\installer\UltimateApp-v5-Setup-x64.exe
 ```
+
+> 💡 **Wskazówka:** Aby instalator zawsze lądował w tym samym miejscu, użyj
+> `-OutputDir` / `--output-dir` z wybraną, stałą ścieżką.
 
 ---
 

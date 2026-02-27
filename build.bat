@@ -7,12 +7,14 @@ echo.
 set SOLUTION_DIR=%~dp0UltimateApp
 set CONFIG=Release
 set BUILD_INSTALLER=0
+set OUTPUT_DIR=
 
 :parse_args
-if "%1"=="Debug"       set CONFIG=Debug           & shift & goto parse_args
-if "%1"=="debug"       set CONFIG=Debug           & shift & goto parse_args
-if "%1"=="--installer" set BUILD_INSTALLER=1      & shift & goto parse_args
-if "%1"=="installer"   set BUILD_INSTALLER=1      & shift & goto parse_args
+if "%1"=="Debug"        set CONFIG=Debug           & shift & goto parse_args
+if "%1"=="debug"        set CONFIG=Debug           & shift & goto parse_args
+if "%1"=="--installer"  set BUILD_INSTALLER=1      & shift & goto parse_args
+if "%1"=="installer"    set BUILD_INSTALLER=1      & shift & goto parse_args
+if "%1"=="--output-dir" set OUTPUT_DIR=%2          & shift & shift & goto parse_args
 
 echo [1/4] Przywracanie pakietów NuGet...
 dotnet restore "%SOLUTION_DIR%\UltimateApp.sln"
@@ -44,7 +46,11 @@ echo.
 echo [+] Budowanie pliku instalacyjnego (Inno Setup)...
 
 set SELFCONTAINED_DIR=%~dp0artifacts\UltimateApp-win-x64-selfcontained
-set INSTALLER_DIR=%~dp0artifacts\installer
+if not "%OUTPUT_DIR%"=="" (
+    set INSTALLER_DIR=%OUTPUT_DIR%
+) else (
+    set INSTALLER_DIR=%~dp0artifacts\installer
+)
 set ISS_FILE=%SOLUTION_DIR%\installer\UltimateApp.iss
 
 echo     Publikowanie self-contained x64...
