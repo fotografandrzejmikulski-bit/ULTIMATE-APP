@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MAS.Api/MAS.Api.csproj" />
+    <Project Path="src/MAS.Core/MAS.Core.csproj" />
+    <Project Path="src/MAS.Infrastructure/MAS.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MAS.Core.Tests/MAS.Core.Tests.csproj" />
+    <Project Path="tests/MAS.Infrastructure.Tests/MAS.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
